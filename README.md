@@ -149,7 +149,7 @@ Web
         let flow = 0;
         let ppm = 0;
         let pompa = false;
-        let emergency = false;
+        let emergency = true;
 
         // ================= DATA GRAFIK =================
         let labels = [];
