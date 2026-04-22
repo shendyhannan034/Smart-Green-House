@@ -138,6 +138,20 @@ var firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 var db = firebase.database();
+            db.ref("greenhouse").on("value", function(snapshot) {
+
+    let data = snapshot.val();
+
+    if (data) {
+        level = data.level;
+        flow = data.flow;
+        ppm = data.ppm;
+
+        pompa = data.pompa === "ON";
+        emergency = data.emergency === "AKTIF";
+    }
+
+});
 
 // ================= STATE =================
 let level = 0;
