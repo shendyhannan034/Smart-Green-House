@@ -157,6 +157,7 @@
         let ppm = 0;
         let pompa = false;
         let emergency = false;
+        let lastDelete = 0;
 
         // ================= HISTORY =================
         let lastSave = 0;
@@ -181,12 +182,35 @@
             });
 
         }
+        function hapusHistoryLama() {
+
+            db.ref("history").once("value", function (snapshot) {
+
+                snapshot.forEach(function (child) {
+
+                    let key = child.key;
+
+                    let waktuData = new Date(key.replace("_", " "));
+                    let sekarang = new Date();
+
+                    let selisih = (sekarang - waktuData) / 1000;
+
+                    if (selisih > 60) { // > 60 detik
+                        db.ref("history/" + key).remove();
+                    }
+
+                });
+
+            });
+
+        }
 
         // ================= DATA GRAFIK =================
         let labels = [];
         let levelData = [];
         let flowData = [];
         let ppmData = [];
+
 
         // ================= CHART =================
         const levelChart = new Chart(document.getElementById("levelChart"), {
@@ -283,6 +307,10 @@
                 lastSave = now;
             }
 
+            if (now - lastDelete > 30000) {
+                hapusHistoryLama();
+                lastDelete = now;
+            }
         }
 
         // jalan tiap 2 detik
