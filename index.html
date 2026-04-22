@@ -121,121 +121,82 @@
 
     <script>
 
-        // ================= FIREBASE CONFIG =================
-        var firebaseConfig = {
-            apiKey: "AIzaSyDqHkPiJvYkYWECR-kBbuHtoqwcNSKuOQ4",
-            authDomain: "smart-green-house-96fc7.firebaseapp.com",
-            databaseURL: "https://smart-green-house-96fc7-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "smart-green-house-96fc7",
-            storageBucket: "smart-green-house-96fc7.firebasestorage.app",
-            messagingSenderId: "1086068447907",
-            appId: "1:1086068447907:web:01cd8d0d0d863671643d16"
-        };
+// ================= FIREBASE =================
+    var firebaseConfig = {
+        apiKey: "AIzaSyDqHkPiJvYkYWECR-kBbuHtoqwcNSKuOQ4",
+    authDomain: "smart-green-house-96fc7.firebaseapp.com",
+    databaseURL: "https://smart-green-house-96fc7-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "smart-green-house-96fc7",
+    storageBucket: "smart-green-house-96fc7.firebasestorage.app",
+    messagingSenderId: "1086068447907",
+    appId: "1:1086068447907:web:01cd8d0d0d863671643d16"
+          };
 
-        firebase.initializeApp(firebaseConfig);
-        var db = firebase.database();
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
 
-        // ================= AMBIL DATA FIREBASE =================
-        db.ref("greenhouse").on("value", function (snapshot) {
+// ================= STATE =================
+let level = 0;
+let flow = 0;
+let ppm = 0;
+let pompa = false;
+let emergency = false;
 
+// ================= TIMER =================
+let lastSave = 0;
+let lastDelete = 0;
+
+// ================= AMBIL DATA =================
+db.ref("greenhouse").on("value", function(snapshot){
             let data = snapshot.val();
 
-            if (data) {
+            if(data){
                 level = data.level;
                 flow = data.flow;
                 ppm = data.ppm;
-
                 pompa = data.pompa === "ON";
                 emergency = data.emergency === "AKTIF";
             }
+});
 
-        });
+// ================= SIMPAN HISTORY =================
+function simpanHistory(){
 
-        // ================= STATE =================
-        let level = 0;
-        let flow = 0;
-        let ppm = 0;
-        let pompa = false;
-        let emergency = false;
-        let lastDelete = 0;
-
-        // ================= HISTORY =================
-        let lastSave = 0;
-
-        function simpanHistory() {
-
-            let now = new Date();
-
-            let waktu =
-                now.getFullYear() + "-" +
-                String(now.getMonth() + 1).padStart(2, '0') + "-" +
-                String(now.getDate()).padStart(2, '0') + "_" +
-                String(now.getHours()).padStart(2, '0') + ":" +
-                String(now.getMinutes()).padStart(2, '0') + ":" +
-                String(now.getSeconds()).padStart(2, '0');
-
-            db.ref("history/" + waktu).set({
+            db.ref("history").push({
                 level: level,
                 flow: flow,
                 ppm: ppm,
-                pompa: pompa ? "ON" : "OFF"
+                pompa: pompa ? "ON" : "OFF",
+                time: Date.now()
             });
 
-        }
-        function hapusHistoryLama() {
+}
 
-            db.ref("history").once("value", function (snapshot) {
+// ================= HAPUS HISTORY =================
+function hapusHistoryLama(){
 
-                snapshot.forEach(function (child) {
+            db.ref("history").once("value", function(snapshot){
 
-                    let key = child.key;
+                snapshot.forEach(function(child){
 
-                    let waktuData = new Date(key.replace("_", " "));
-                    let sekarang = new Date();
+                    let data = child.val();
 
-                    let selisih = (sekarang - waktuData) / 1000;
+                    if(data && data.time){
+                        let selisih = (Date.now() - data.time) / 1000;
 
-                    if (selisih > 60) { // > 60 detik
-                        db.ref("history/" + key).remove();
+                        if(selisih > 60){ // hapus > 60 detik
+                            db.ref("history/" + child.key).remove();
+                        }
                     }
 
                 });
 
             });
 
-        }
+}
 
-        // ================= DATA GRAFIK =================
-        let labels = [];
-        let levelData = [];
-        let flowData = [];
-        let ppmData = [];
-
-
-        // ================= CHART =================
-        const levelChart = new Chart(document.getElementById("levelChart"), {
-            type: "line",
-            data: { labels: labels, datasets: [{ label: "Level", data: levelData }] }
-        });
-
-        const flowChart = new Chart(document.getElementById("flowChart"), {
-            type: "line",
-            data: { labels: labels, datasets: [{ label: "Flow", data: flowData }] }
-        });
-
-        const ppmChart = new Chart(document.getElementById("ppmChart"), {
-            type: "line",
-            data: { labels: labels, datasets: [{ label: "PPM", data: ppmData }] }
-        });
-
-        // ================= KONTROL =================
-        function pompaOn() { if (!emergency) pompa = true; }
-        function pompaOff() { pompa = false; }
-        function emergencyOn() { emergency = true; pompa = false; }
-        function resetEmergency() { emergency = false; }
-
-        // ================= SISTEM =================
-        function updateSystem() {
+// ================= SISTEM =================
+function updateSystem(){
 
             if (emergency) {
                 pompa = false;
@@ -245,7 +206,7 @@
                 flow += 2;
                 ppm += 50;
 
-                if (level >= 80) {
+                if (level >= 80){
                     level = 80;
                     pompa = false;
                 }
@@ -255,12 +216,12 @@
                 flow -= 1;
                 ppm -= 30;
 
-                if (level <= 20) {
+                if (level <= 20){
                     pompa = true;
                 }
             }
 
-            // ===== UPDATE UI =====
+            // UI
             document.getElementById("level").innerText = level + "%";
             document.getElementById("flow").innerText = flow + " L/min";
             document.getElementById("ppm").innerText = ppm + " ppm";
@@ -271,26 +232,7 @@
             document.getElementById("emergencyStatus").innerText =
                 emergency ? "EMERGENCY AKTIF" : "NORMAL";
 
-            // ===== GRAFIK =====
-            let waktu = new Date().toLocaleTimeString();
-
-            labels.push(waktu);
-            levelData.push(level);
-            flowData.push(flow);
-            ppmData.push(ppm);
-
-            if (labels.length > 10) {
-                labels.shift();
-                levelData.shift();
-                flowData.shift();
-                ppmData.shift();
-            }
-
-            levelChart.update();
-            flowChart.update();
-            ppmChart.update();
-
-            // ===== FIREBASE REALTIME =====
+            // FIREBASE REALTIME
             db.ref("greenhouse").set({
                 level: level,
                 flow: flow,
@@ -299,24 +241,23 @@
                 emergency: emergency ? "AKTIF" : "NORMAL"
             });
 
-            // ===== HISTORY TIAP 10 DETIK =====
             let now = Date.now();
 
-            if (now - lastSave > 10000) {
+            // SIMPAN HISTORY
+            if(now - lastSave > 10000){
                 simpanHistory();
                 lastSave = now;
             }
 
-            if (now - lastDelete > 30000) {
+            // HAPUS HISTORY
+            if(now - lastDelete > 30000){
                 hapusHistoryLama();
                 lastDelete = now;
             }
-        }
 
-        // jalan tiap 2 detik
-        setInterval(updateSystem, 5000);
+}
+
+// RUN
+setInterval(updateSystem, 2000);
 
     </script>
-
-</body>
-</html>
