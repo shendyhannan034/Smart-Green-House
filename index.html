@@ -1,263 +1,43 @@
 <!DOCTYPE html>
 
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Tandon Air</title>
+    <title>Monitoring DHT11</title>
+</head>
+<body>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <h1>Monitoring Sensor DHT11</h1>
+
+    <h2>Suhu: <span id="suhu">--</span> °C</h2>
+    <h2>Kelembaban: <span id="kelembaban">--</span> %</h2>
+
+    <!-- Firebase SDK -->
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <style>
-        body {
-            font-family: Arial;
-            background: #eef2f7;
-            text-align: center;
-        }
-
-        header {
-            background: #2c7be5;
-            color: white;
-            padding: 15px;
-            font-size: 22px;
-        }
-
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .card {
-            background: white;
-            width: 280px;
-            margin: 12px;
-            padding: 20px;
-            border-radius: 15px;
-        }
-
-        .value {
-            font-size: 30px;
-            color: #2c7be5;
-        }
-
-        button {
-            padding: 10px;
-            margin: 5px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .on {
-            background: green;
-            color: white;
-        }
-
-        .off {
-            background: red;
-            color: white;
-        }
-
-        .emg {
-            background: orange;
-            color: white;
-        }
-
-        .reset {
-            background: gray;
-            color: white;
-        }
-    </style>
-
-</head>
-
-<body>
-
-    <header>🌱 Smart Greenhouse - Tandon Air</header>
-
-    <div class="container">
-
-        <div class="card">
-            <h3>Level Air</h3>
-            <div class="value" id="level">0%</div>
-        </div>
-
-        <div class="card">
-            <h3>Debit Air</h3>
-            <div class="value" id="flow">0 L/min</div>
-        </div>
-
-        <div class="card">
-            <h3>Kualitas Air</h3>
-            <div class="value" id="ppm">0 ppm</div>
-        </div>
-
-        <div class="card">
-            <h3>Status Pompa</h3>
-            <div id="status">OFF</div>
-
-            <button class="on" onclick="pompaOn()">ON</button> <button class="off" onclick="pompaOff()">OFF</button><br>
-
-            <button class="emg" onclick="emergencyOn()">EMERGENCY</button> <button class="reset" onclick="resetEmergency()">RESET</button>
-
-            <div id="emergencyStatus">NORMAL</div>
-        </div>
-
-    </div>
-
-    <h3>Grafik Level Air</h3>
-    <canvas id="levelChart"></canvas>
-
-    <h3>Grafik Debit Air</h3>
-    <canvas id="flowChart"></canvas>
-
-    <h3>Grafik Kualitas Air</h3>
-    <canvas id="ppmChart"></canvas>
-
     <script>
+        // 🔥 CONFIG FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyBsnvPLoYpRG1nox0TtN2BwJXKyqx67drg",
+            databaseURL: "https://sensordht11-c9561-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        };
 
-// ================= FIREBASE =================
-    var firebaseConfig = {
-        apiKey: "AIzaSyDqHkPiJvYkYWECR-kBbuHtoqwcNSKuOQ4",
-    authDomain: "smart-green-house-96fc7.firebaseapp.com",
-    databaseURL: "https://smart-green-house-96fc7-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "smart-green-house-96fc7",
-    storageBucket: "smart-green-house-96fc7.firebasestorage.app",
-    messagingSenderId: "1086068447907",
-    appId: "1:1086068447907:web:01cd8d0d0d863671643d16"
-          };
+        // Init Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-firebase.initializeApp(firebaseConfig);
-var db = firebase.database();
+        // 🔥 Ambil data dari Firebase
+        db.ref("DHT11").limitToLast(1).on("value", (snapshot) => {
+            snapshot.forEach((child) => {
+                let data = child.val();
 
-// ================= STATE =================
-let level = 0;
-let flow = 0;
-let ppm = 0;
-let pompa = false;
-let emergency = false;
-
-// ================= TIMER =================
-let lastSave = 0;
-let lastDelete = 0;
-
-// ================= AMBIL DATA =================
-db.ref("greenhouse").on("value", function(snapshot){
-            let data = snapshot.val();
-
-            if(data){
-                level = data.level;
-                flow = data.flow;
-                ppm = data.ppm;
-                pompa = data.pompa === "ON";
-                emergency = data.emergency === "AKTIF";
-            }
-});
-
-// ================= SIMPAN HISTORY =================
-function simpanHistory(){
-
-            db.ref("history").push({
-                level: level,
-                flow: flow,
-                ppm: ppm,
-                pompa: pompa ? "ON" : "OFF",
-                time: Date.now()
+                document.getElementById("suhu").innerText = data.suhu;
+                document.getElementById("kelembaban").innerText = data.kelembaban;
             });
-
-}
-
-// ================= HAPUS HISTORY =================
-function hapusHistoryLama(){
-
-            db.ref("history").once("value", function(snapshot){
-
-                snapshot.forEach(function(child){
-
-                    let data = child.val();
-
-                    if(data && data.time){
-                        let selisih = (Date.now() - data.time) / 1000;
-
-                        if(selisih > 60){ // hapus > 60 detik
-                            db.ref("history/" + child.key).remove();
-                        }
-                    }
-
-                });
-
-            });
-
-}
-
-// ================= SISTEM =================
-function updateSystem(){
-
-            if (emergency) {
-                pompa = false;
-            }
-            else if (pompa) {
-                level += 5;
-                flow += 2;
-                ppm += 50;
-
-                if (level >= 80){
-                    level = 80;
-                    pompa = false;
-                }
-            }
-            else {
-                level -= 3;
-                flow -= 1;
-                ppm -= 30;
-
-                if (level <= 20){
-                    pompa = true;
-                }
-            }
-
-            // UI
-            document.getElementById("level").innerText = level + "%";
-            document.getElementById("flow").innerText = flow + " L/min";
-            document.getElementById("ppm").innerText = ppm + " ppm";
-
-            document.getElementById("status").innerText = pompa ? "ON" : "OFF";
-            document.getElementById("status").style.color = pompa ? "green" : "red";
-
-            document.getElementById("emergencyStatus").innerText =
-                emergency ? "EMERGENCY AKTIF" : "NORMAL";
-
-            // FIREBASE REALTIME
-            db.ref("greenhouse").set({
-                level: level,
-                flow: flow,
-                ppm: ppm,
-                pompa: pompa ? "ON" : "OFF",
-                emergency: emergency ? "AKTIF" : "NORMAL"
-            });
-
-            let now = Date.now();
-
-            // SIMPAN HISTORY
-            if(now - lastSave > 10000){
-                simpanHistory();
-                lastSave = now;
-            }
-
-            // HAPUS HISTORY
-            if(now - lastDelete > 30000){
-                hapusHistoryLama();
-                lastDelete = now;
-            }
-
-}
-
-// RUN
-setInterval(updateSystem, 2000);
-
+        });
     </script>
+
+</body>
+</html>
