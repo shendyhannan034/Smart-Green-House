@@ -251,7 +251,9 @@
                 History Pengambilan Data
             </h2>
 
-            <div id="historyTable"></div>
+            <div id="summaryContainer"></div>
+
+            <div id="detailContainer"></div>
 
         </div>
 
@@ -323,8 +325,11 @@
         const energi =
             document.getElementById("energi");
 
-        const historyTable =
-            document.getElementById("historyTable");
+        const summaryContainer =
+            document.getElementById("summaryContainer");
+
+        const detailContainer =
+            document.getElementById("detailContainer");
 
         // ======================================================
         // TIMER
@@ -340,6 +345,7 @@
 
         let minuteCounter = 0;
 
+        let startTime = null;
         updateTimer();
 
         // ======================================================
@@ -422,6 +428,8 @@
 
                 updateTimer();
 
+                startTime = Date.now();
+
                 running = true;
 
                 db.ref("monitoring/status")
@@ -498,13 +506,31 @@
 
             timerInterval = setInterval(() => {
 
-                if (running) {
+                if (!running) return;
 
-                    totalSeconds--;
+                // ==========================================
+                // HITUNG WAKTU BERDASARKAN JAM ASLI
+                // ==========================================
 
-                    updateTimer();
+                const elapsedSeconds =
+                    Math.floor(
+                        (Date.now() - startTime) / 1000
+                    );
+
+                totalSeconds =
+                    600 - elapsedSeconds;
+
+                // ==========================================
+                // BATAS MINIMUM
+                // ==========================================
+
+                if (totalSeconds < 0) {
+
+                    totalSeconds = 0;
 
                 }
+
+                updateTimer();
 
             }, 1000);
 
@@ -530,7 +556,12 @@
                 // TAMBAH MENIT
                 // ==========================================
 
-                minuteCounter++;
+                minuteCounter =
+                    Math.floor(
+                        (Date.now() - startTime)
+                        / 60000
+                    );
+                if (minuteCounter < 1) return;
 
                 // ==========================================
                 // AMBIL DATA REALTIME
@@ -692,106 +723,243 @@
         db.ref("History")
             .on("value", (snapshot) => {
 
-                historyTable.innerHTML = "";
+                summaryContainer.innerHTML = "";
 
                 if (snapshot.exists()) {
 
                     const allData = snapshot.val();
 
-                    // ==========================================
-                    // LOOP SEMUA BEBAN
-                    // ==========================================
+                    let summaryHTML = `
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Nama Beban</th>
+                    <th>Avg Tegangan</th>
+                    <th>Avg Arus</th>
+                    <th>Avg Daya</th>
+                    <th>Avg Energi</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+        `;
 
                     for (let beban in allData) {
 
-                        // ==========================================
-                        // CARD BARU
-                        // ==========================================
+                        const sortedMenit =
+                            Object.keys(allData[beban])
+                                .sort((a, b) => {
 
-                        let tableHTML = `
+                                    return parseInt(a.split("_")[1]) -
+                                        parseInt(b.split("_")[1]);
 
-                <div class="card">
+                                });
 
-                    <h2 style="margin-bottom:20px;">
-                        History ${beban}
-                    </h2>
+                        let totalTegangan = 0;
+                        let totalArus = 0;
+                        let totalDaya = 0;
+                        let totalEnergi = 0;
 
-                    <table>
+                        let jumlahData =
+                            sortedMenit.length;
 
-                        <thead>
-
-                            <tr>
-
-                                <th>Menit</th>
-                                <th>Tegangan</th>
-                                <th>Arus</th>
-                                <th>Daya</th>
-                                <th>Energi</th>
-                                <th>Waktu</th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody>
-
-            `;
-
-                        // ==========================================
-                        // LOOP MENIT
-                        // ==========================================
-                        const sortedMenit = Object.keys(allData[beban])
-                            .sort((a, b) => {
-
-                                return parseInt(a.split("_")[1]) -
-                                    parseInt(b.split("_")[1]);
-
-                            });
-
-                        for (let menit of sortedMenit) {
+                        sortedMenit.forEach((menit) => {
 
                             const data =
                                 allData[beban][menit];
 
-                            tableHTML += `
+                            totalTegangan +=
+                                parseFloat(data.tegangan || 0);
 
-                    <tr>
+                            totalArus +=
+                                parseFloat(data.arus || 0);
 
-                        <td>${data.menit}</td>
+                            totalDaya +=
+                                parseFloat(data.daya || 0);
 
-                        <td>${data.tegangan} V</td>
+                            totalEnergi +=
+                                parseFloat(data.energi || 0);
 
-                        <td>${data.arus} A</td>
+                        });
 
-                        <td>${data.daya} W</td>
+                        let avgTegangan =
+                            (totalTegangan / jumlahData)
+                                .toFixed(1);
 
-                        <td>${data.energi} kWh</td>
+                        let avgArus =
+                            (totalArus / jumlahData)
+                                .toFixed(2);
 
-                        <td>${data.waktu}</td>
+                        let avgDaya =
+                            (totalDaya / jumlahData)
+                                .toFixed(1);
 
-                    </tr>
+                        let avgEnergi =
+                            (totalEnergi / jumlahData)
+                                .toFixed(3);
 
-                `;
+                        summaryHTML += `
 
-                        }
+            <tr
+                onclick="showDetail('${beban}')"
+                style="cursor:pointer;"
+            >
 
-                        tableHTML += `
+                <td><b>${beban}</b></td>
 
-                        </tbody>
+                <td>${avgTegangan} V</td>
 
-                    </table>
+                <td>${avgArus} A</td>
 
-                </div>
+                <td>${avgDaya} W</td>
+
+                <td>${avgEnergi} kWh</td>
+
+            </tr>
 
             `;
 
-                        historyTable.innerHTML += tableHTML;
-
                     }
+
+                    summaryHTML += `
+            </tbody>
+        </table>
+        `;
+
+                    summaryContainer.innerHTML =
+                        summaryHTML;
+
+                    // ==========================================
+                    // SIMPAN GLOBAL
+                    // ==========================================
+
+                    window.historyFirebase =
+                        allData;
 
                 }
 
             });
+        function showDetail(beban) {
+
+            const allData =
+                window.historyFirebase;
+
+            const dataBeban =
+                allData[beban];
+
+            const sortedMenit =
+                Object.keys(dataBeban)
+                    .sort((a, b) => {
+
+                        return parseInt(a.split("_")[1]) -
+                            parseInt(b.split("_")[1]);
+
+                    });
+
+            // ==========================================
+            // HIDE SUMMARY
+            // ==========================================
+
+            summaryContainer.style.display =
+                "none";
+
+            // ==========================================
+            // DETAIL HTML
+            // ==========================================
+
+            let detailHTML = `
+
+    <button
+        onclick="backToSummary()"
+        class="pause"
+        style="margin-bottom:20px;"
+    >
+        KEMBALI
+    </button>
+
+    <div class="card">
+
+        <h2 style="margin-bottom:20px;">
+            Detail ${beban}
+        </h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Menit</th>
+                    <th>Tegangan</th>
+                    <th>Arus</th>
+                    <th>Daya</th>
+                    <th>Energi</th>
+                    <th>Waktu</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+    `;
+
+            sortedMenit.forEach((menit) => {
+
+                const data =
+                    dataBeban[menit];
+
+                detailHTML += `
+
+        <tr>
+
+            <td>${data.menit}</td>
+
+            <td>${data.tegangan} V</td>
+
+            <td>${data.arus} A</td>
+
+            <td>${data.daya} W</td>
+
+            <td>${data.energi} kWh</td>
+
+            <td>${data.waktu}</td>
+
+        </tr>
+
+        `;
+
+            });
+
+            detailHTML += `
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    `;
+
+            detailContainer.innerHTML =
+                detailHTML;
+
+        }
+        function backToSummary() {
+
+            detailContainer.innerHTML = "";
+
+            summaryContainer.style.display =
+                "block";
+
+        }
 
     </script>
 
