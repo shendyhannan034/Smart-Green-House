@@ -10,6 +10,7 @@
     <!-- FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
 
@@ -741,7 +742,7 @@
                     <th>Avg Tegangan</th>
                     <th>Avg Arus</th>
                     <th>Avg Daya</th>
-                    <th>Avg Energi</th>
+                    <th>Total Energi</th>
 
                 </tr>
 
@@ -765,7 +766,7 @@
                         let totalTegangan = 0;
                         let totalArus = 0;
                         let totalDaya = 0;
-                        let totalEnergi = 0;
+                       
 
                         let jumlahData =
                             sortedMenit.length;
@@ -784,8 +785,6 @@
                             totalDaya +=
                                 parseFloat(data.daya || 0);
 
-                            totalEnergi +=
-                                parseFloat(data.energi || 0);
 
                         });
 
@@ -801,9 +800,14 @@
                             (totalDaya / jumlahData)
                                 .toFixed(1);
 
-                        let avgEnergi =
-                            (totalEnergi / jumlahData)
-                                .toFixed(3);
+                        let totalEnergiDisplay = "0.000";
+
+                        if (allData[beban]["menit_10"]) {
+                            totalEnergiDisplay =
+                                parseFloat(
+                                    allData[beban]["menit_10"].energi || 0
+                                ).toFixed(3);
+                        }
 
                         summaryHTML += `
 
@@ -820,7 +824,7 @@
 
                 <td>${avgDaya} W</td>
 
-                <td>${avgEnergi} kWh</td>
+<td>${totalEnergiDisplay} kWh</td>
 
             </tr>
 
@@ -863,6 +867,13 @@
 
                     });
 
+            const labelMenit = [];
+
+            const dataTegangan = [];
+            const dataArus = [];
+            const dataDaya = [];
+            const dataEnergi = [];
+
             // ==========================================
             // HIDE SUMMARY
             // ==========================================
@@ -890,6 +901,40 @@
             Detail ${beban}
         </h2>
 
+        <select
+    id="parameterSelect"
+    onchange="updateChart()"
+    style="
+        padding:10px;
+        margin-bottom:15px;
+        border-radius:8px;
+    "
+>
+    <option value="tegangan">Tegangan</option>
+    <option value="arus">Arus</option>
+    <option value="daya" selected>Daya</option>
+    <option value="energi">Energi</option>
+</select>
+
+        <canvas
+    id="chartBeban"
+    height="100"
+    style="
+        background:#1e293b;
+        margin-bottom:20px;
+    "
+></canvas>
+<br>
+
+<h3 style="margin-bottom:10px;">
+    Grafik Keseluruhan
+</h3>
+
+<canvas
+    id="chartAll"
+    height="120"
+></canvas>
+
         <table>
 
             <thead>
@@ -915,6 +960,23 @@
 
                 const data =
                     dataBeban[menit];
+                labelMenit.push(data.menit);
+
+                dataTegangan.push(
+                    parseFloat(data.tegangan || 0)
+                );
+
+                dataArus.push(
+                    parseFloat(data.arus || 0)
+                );
+
+                dataDaya.push(
+                    parseFloat(data.daya || 0)
+                );
+
+                dataEnergi.push(
+                    parseFloat(data.energi || 0)
+                );
 
                 detailHTML += `
 
@@ -950,6 +1012,237 @@
 
             detailContainer.innerHTML =
                 detailHTML;
+            window.chartLabels =
+                labelMenit;
+
+            window.chartData = {
+
+                tegangan:
+                    dataTegangan,
+
+                arus:
+                    dataArus,
+
+                daya:
+                    dataDaya,
+
+                energi:
+                    dataEnergi
+
+            };
+            const ctx =
+                document.getElementById("chartBeban");
+
+            window.myChart =
+                new Chart(ctx, {
+
+                type: "line",
+
+                data: {
+
+                    labels: labelMenit,
+
+                    datasets: [{
+                        label: "Daya (W)",
+
+                        data: dataDaya,
+
+                        borderColor: "#f59e0b",
+
+                        backgroundColor: "#f59e0b",
+                    }]
+
+                },
+
+                options: {
+                    responsive: true
+                }
+
+                });
+            const ctxAll =
+                document.getElementById("chartAll");
+
+            new Chart(ctxAll, {
+
+                type: "line",
+
+                data: {
+
+                    labels: labelMenit,
+
+                    datasets: [
+
+                        {
+                            label: "Tegangan (V)",
+                            data: dataTegangan,
+                            borderColor: "#3b82f6",
+                            backgroundColor: "#3b82f6",
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+
+                        {
+                            label: "Daya (W)",
+                            data: dataDaya,
+                            borderColor: "#f59e0b",
+                            backgroundColor: "#f59e0b",
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+
+                        {
+                            label: "Arus (A)",
+                            data: dataArus,
+                            borderColor: "#22c55e",
+                            backgroundColor: "#22c55e",
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        },
+
+                        {
+                            label: "Energi (kWh)",
+                            data: dataEnergi,
+                            borderColor: "#ef4444",
+                            backgroundColor: "#ef4444",
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    interaction: {
+
+                        mode: "index",
+
+                        intersect: false
+
+                    },
+
+                    plugins: {
+
+                        legend: {
+
+                            position: "top"
+
+                        }
+
+                    },
+
+                    scales: {
+
+                        y: {
+
+                            type: 'linear',
+
+                            position: 'left',
+
+                            title: {
+
+                                display: true,
+
+                                text: 'Tegangan / Daya'
+
+                            }
+
+                        },
+
+                        y1: {
+
+                            type: 'linear',
+
+                            position: 'right',
+
+                            title: {
+
+                                display: true,
+
+                                text: 'Arus / Energi'
+
+                            },
+
+                            grid: {
+
+                                drawOnChartArea: false
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            });
+        }
+        function updateChart() {
+
+            const parameter =
+                document.getElementById(
+                    "parameterSelect"
+                ).value;
+
+            window.myChart.data.datasets[0].data =
+                window.chartData[parameter];
+
+            if (parameter === "tegangan") {
+
+                window.myChart.data.datasets[0].label =
+                    "Tegangan (V)";
+
+                window.myChart.data.datasets[0].borderColor =
+                    "#3b82f6";
+
+                window.myChart.data.datasets[0].backgroundColor =
+                    "#3b82f6";
+
+            }
+
+            if (parameter === "arus") {
+
+                window.myChart.data.datasets[0].label =
+                    "Arus (A)";
+
+                window.myChart.data.datasets[0].borderColor =
+                    "#22c55e";
+
+                window.myChart.data.datasets[0].backgroundColor =
+                    "#22c55e";
+
+            }
+
+            if (parameter === "daya") {
+
+                window.myChart.data.datasets[0].label =
+                    "Daya (W)";
+
+                window.myChart.data.datasets[0].borderColor =
+                    "#f59e0b";
+
+                window.myChart.data.datasets[0].backgroundColor =
+                    "#f59e0b";
+
+            }
+
+            if (parameter === "energi") {
+
+                window.myChart.data.datasets[0].label =
+                    "Energi (kWh)";
+
+                window.myChart.data.datasets[0].borderColor =
+                    "#ef4444";
+
+                window.myChart.data.datasets[0].backgroundColor =
+                    "#ef4444";
+
+            }
+
+            window.myChart.update();
 
         }
         function backToSummary() {
