@@ -246,11 +246,29 @@
 
         </div>
         <!-- HISTORY -->
+        <!-- HISTORY -->
         <div class="card">
 
             <h2 style="margin-bottom:20px;">
                 History Pengambilan Data
             </h2>
+
+            <select id="parameterGlobal"
+                    onchange="updateGlobalChart()"
+                    style="
+            padding:10px;
+            margin-bottom:15px;
+            border-radius:8px;
+        ">
+                <option value="tegangan">Tegangan</option>
+                <option value="arus">Arus</option>
+                <option value="daya" selected>Daya</option>
+                <option value="energi">Energi</option>
+            </select>
+
+            <canvas id="globalChart"
+                    height="120"
+                    style="margin-bottom:20px;"></canvas>
 
             <div id="summaryContainer"></div>
 
@@ -345,7 +363,7 @@
         let running = false;
 
         let minuteCounter = 0;
-
+        let globalChart = null;
         let startTime = null;
         updateTimer();
 
@@ -846,10 +864,98 @@
 
                     window.historyFirebase =
                         allData;
-
+                    createGlobalChart("daya");
                 }
 
             });
+        function createGlobalChart(parameter = "daya") {
+            const allData = window.historyFirebase;
+
+            if (!allData) return;
+
+            const datasets = [];
+
+            const colors = [
+                "#3b82f6",
+                "#ef4444",
+                "#22c55e",
+                "#f59e0b",
+                "#8b5cf6",
+                "#06b6d4",
+                "#ec4899",
+                "#84cc16",
+                "#f97316",
+                "#14b8a6"
+            ];
+
+            let i = 0;
+
+            for (let beban in allData) {
+                const sortedMenit =
+                    Object.keys(allData[beban])
+                        .sort((a, b) =>
+                            parseInt(a.split("_")[1]) -
+                            parseInt(b.split("_")[1])
+                        );
+
+                const dataChart = [];
+
+                sortedMenit.forEach(menit => {
+                    dataChart.push(
+                        parseFloat(
+                            allData[beban][menit][parameter] || 0
+                        )
+                    );
+                });
+
+                datasets.push({
+                    label: beban,
+                    data: dataChart,
+                    borderColor: colors[i % colors.length],
+                    backgroundColor: colors[i % colors.length],
+                    tension: 0.3,
+                    fill: false
+                });
+
+                i++;
+            }
+
+            const ctx =
+                document.getElementById("globalChart");
+
+            if (globalChart) {
+                globalChart.destroy();
+            }
+
+            globalChart =
+                new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: {
+                            mode: "index",
+                            intersect: false
+                        },
+                        plugins: {
+                            legend: {
+                                position: "top"
+                            }
+                        }
+                    }
+                });
+        }
+        function updateGlobalChart() {
+            const parameter =
+                document.getElementById(
+                    "parameterGlobal"
+                ).value;
+
+            createGlobalChart(parameter);
+        }
         function showDetail(beban) {
 
             const allData =
@@ -1243,8 +1349,9 @@
             }
 
             window.myChart.update();
-
+      
         }
+        
         function backToSummary() {
 
             detailContainer.innerHTML = "";
