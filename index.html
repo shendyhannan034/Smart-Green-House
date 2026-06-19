@@ -275,6 +275,76 @@
             <div id="detailContainer"></div>
 
         </div>
+        <!-- DATA MULTIMETER MANUAL -->
+        <div class="card">
+
+            <h2 style="margin-bottom:20px;">
+                Data Pengukuran Multimeter
+            </h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nama Beban</th>
+                        <th>Tegangan Menit 1 (V)</th>
+                        <th>Arus Menit 1 (A)</th>
+                        <th>Tegangan Menit 2 (V)</th>
+                        <th>Arus Menit 2 (A)</th>
+                    </tr>
+                </thead>
+
+                <tbody id="multimeterTable">
+
+                    <tr>
+
+                        <td>
+                            <input type="text"
+                                   placeholder="Nama Beban"
+                                   style="width:100%;">
+                        </td>
+
+                        <td>
+                            <input type="number"
+                                   step="0.1"
+                                   placeholder="Volt"
+                                   style="width:100%;">
+                        </td>
+
+                        <td>
+                            <input type="number"
+                                   step="0.01"
+                                   placeholder="Ampere"
+                                   style="width:100%;">
+                        </td>
+
+                        <td>
+                            <input type="number"
+                                   step="0.1"
+                                   placeholder="Volt"
+                                   style="width:100%;">
+                        </td>
+
+                        <td>
+                            <input type="number"
+                                   step="0.01"
+                                   placeholder="Ampere"
+                                   style="width:100%;">
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+            <br>
+
+            <button onclick="tambahBaris()"
+                    class="start">
+                + Tambah Beban
+            </button>
+
+        </div>
 
     </div>
 
@@ -1359,6 +1429,52 @@
             summaryContainer.style.display =
                 "block";
 
+        }
+        function tambahBaris() {
+
+            const table =
+                document.getElementById("multimeterTable");
+
+            const row =
+                table.insertRow();
+
+            row.innerHTML = `
+
+        <td>
+            <input type="text"
+                   placeholder="Nama Beban"
+                   style="width:100%;">
+        </td>
+
+        <td>
+            <input type="number"
+                   step="0.1"
+                   placeholder="Volt"
+                   style="width:100%;">
+        </td>
+
+        <td>
+            <input type="number"
+                   step="0.01"
+                   placeholder="Ampere"
+                   style="width:100%;">
+        </td>
+
+        <td>
+            <input type="number"
+                   step="0.1"
+                   placeholder="Volt"
+                   style="width:100%;">
+        </td>
+
+        <td>
+            <input type="number"
+                   step="0.01"
+                   placeholder="Ampere"
+                   style="width:100%;">
+        </td>
+
+    `;
         }
 
     </script>
