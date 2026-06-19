@@ -161,6 +161,7 @@
         tr:hover {
             background: #273449;
         }
+
         #multimeterTable input {
             width: 100%;
             min-width: 120px;
@@ -171,6 +172,7 @@
             padding: 8px 12px;
             margin: 2px;
         }
+
         #multimeterTable input[readonly] {
             background: #1e293b;
             color: white;
@@ -828,25 +830,25 @@
 
                     let summaryHTML = `
 
-        <table>
+            <table>
 
-            <thead>
+                <thead>
 
-                <tr>
+                    <tr>
 
-                    <th>Nama Beban</th>
-                    <th>Avg Tegangan</th>
-                    <th>Avg Arus</th>
-                    <th>Avg Daya</th>
-                    <th>Total Energi</th>
+                        <th>Nama Beban</th>
+                        <th>Avg Tegangan</th>
+                        <th>Avg Arus</th>
+                        <th>Avg Daya</th>
+                        <th>Total Energi</th>
 
-                </tr>
+                    </tr>
 
-            </thead>
+                </thead>
 
-            <tbody>
+                <tbody>
 
-        `;
+            `;
 
                     for (let beban in allData) {
 
@@ -862,7 +864,7 @@
                         let totalTegangan = 0;
                         let totalArus = 0;
                         let totalDaya = 0;
-                       
+
 
                         let jumlahData =
                             sortedMenit.length;
@@ -907,31 +909,31 @@
 
                         summaryHTML += `
 
-            <tr
-                onclick="showDetail('${beban}')"
-                style="cursor:pointer;"
-            >
+                <tr
+                    onclick="showDetail('${beban}')"
+                    style="cursor:pointer;"
+                >
 
-                <td><b>${beban}</b></td>
+                    <td><b>${beban}</b></td>
 
-                <td>${avgTegangan} V</td>
+                    <td>${avgTegangan} V</td>
 
-                <td>${avgArus} A</td>
+                    <td>${avgArus} A</td>
 
-                <td>${avgDaya} W</td>
+                    <td>${avgDaya} W</td>
 
 <td>${totalEnergiDisplay} kWh</td>
 
-            </tr>
+                </tr>
 
-            `;
+                `;
 
                     }
 
                     summaryHTML += `
-            </tbody>
-        </table>
-        `;
+                </tbody>
+            </table>
+            `;
 
                     summaryContainer.innerHTML =
                         summaryHTML;
@@ -1071,74 +1073,74 @@
 
             let detailHTML = `
 
-    <button
-        onclick="backToSummary()"
-        class="pause"
-        style="margin-bottom:20px;"
-    >
-        KEMBALI
-    </button>
+        <button
+            onclick="backToSummary()"
+            class="pause"
+            style="margin-bottom:20px;"
+        >
+            KEMBALI
+        </button>
 
-    <div class="card">
+        <div class="card">
 
-        <h2 style="margin-bottom:20px;">
-            Detail ${beban}
-        </h2>
+            <h2 style="margin-bottom:20px;">
+                Detail ${beban}
+            </h2>
 
-        <select
-    id="parameterSelect"
-    onchange="updateChart()"
-    style="
-        padding:10px;
-        margin-bottom:15px;
-        border-radius:8px;
-    "
+            <select
+        id="parameterSelect"
+        onchange="updateChart()"
+        style="
+            padding:10px;
+            margin-bottom:15px;
+            border-radius:8px;
+        "
 >
-    <option value="tegangan">Tegangan</option>
-    <option value="arus">Arus</option>
-    <option value="daya" selected>Daya</option>
-    <option value="energi">Energi</option>
+        <option value="tegangan">Tegangan</option>
+        <option value="arus">Arus</option>
+        <option value="daya" selected>Daya</option>
+        <option value="energi">Energi</option>
 </select>
 
-        <canvas
-    id="chartBeban"
-    height="100"
-    style="
-        background:#1e293b;
-        margin-bottom:20px;
-    "
+            <canvas
+        id="chartBeban"
+        height="100"
+        style="
+            background:#1e293b;
+            margin-bottom:20px;
+        "
 ></canvas>
 <br>
 
 <h3 style="margin-bottom:10px;">
-    Grafik Keseluruhan
+        Grafik Keseluruhan
 </h3>
 
 <canvas
-    id="chartAll"
-    height="120"
+        id="chartAll"
+        height="120"
 ></canvas>
 
-        <table>
+            <table>
 
-            <thead>
+                <thead>
 
-                <tr>
+                    <tr>
 
-                    <th>Menit</th>
-                    <th>Tegangan</th>
-                    <th>Arus</th>
-                    <th>Daya</th>
-                    <th>Energi</th>
-                    <th>Waktu</th>
+                        <th>Menit</th>
+                        <th>Tegangan</th>
+                        <th>Arus</th>
+                        <th>Daya</th>
+                        <th>Energi</th>
+                        <th>Waktu</th>
 
-                </tr>
+                    </tr>
 
-            </thead>
+                </thead>
 
-            <tbody>
+                <tbody>
 
-    `;
+        `;
 
             sortedMenit.forEach((menit) => {
 
@@ -1164,35 +1166,35 @@
 
                 detailHTML += `
 
-        <tr>
+            <tr>
 
-            <td>${data.menit}</td>
+                <td>${data.menit}</td>
 
-            <td>${data.tegangan} V</td>
+                <td>${data.tegangan} V</td>
 
-            <td>${data.arus} A</td>
+                <td>${data.arus} A</td>
 
-            <td>${data.daya} W</td>
+                <td>${data.daya} W</td>
 
-            <td>${data.energi} kWh</td>
+                <td>${data.energi} kWh</td>
 
-            <td>${data.waktu}</td>
+                <td>${data.waktu}</td>
 
-        </tr>
+            </tr>
 
-        `;
+            `;
 
             });
 
             detailHTML += `
 
-            </tbody>
+                </tbody>
 
-        </table>
+            </table>
 
-    </div>
+        </div>
 
-    `;
+        `;
 
             detailContainer.innerHTML =
                 detailHTML;
@@ -1220,27 +1222,27 @@
             window.myChart =
                 new Chart(ctx, {
 
-                type: "line",
+                    type: "line",
 
-                data: {
+                    data: {
 
-                    labels: labelMenit,
+                        labels: labelMenit,
 
-                    datasets: [{
-                        label: "Daya (W)",
+                        datasets: [{
+                            label: "Daya (W)",
 
-                        data: dataDaya,
+                            data: dataDaya,
 
-                        borderColor: "#f59e0b",
+                            borderColor: "#f59e0b",
 
-                        backgroundColor: "#f59e0b",
-                    }]
+                            backgroundColor: "#f59e0b",
+                        }]
 
-                },
+                    },
 
-                options: {
-                    responsive: true
-                }
+                    options: {
+                        responsive: true
+                    }
 
                 });
             const ctxAll =
@@ -1427,9 +1429,9 @@
             }
 
             window.myChart.update();
-      
+
         }
-        
+
         function backToSummary() {
 
             detailContainer.innerHTML = "";
@@ -1448,108 +1450,81 @@
 
             row.innerHTML = `
 
-        <td><input type="text" placeholder="Nama Beban"></td>
+            <td><input type="text" placeholder="Nama Beban"></td>
 
-        <td><input type="number" step="0.1"></td>
+            <td><input type="number" step="0.1"></td>
 
-        <td><input type="number" step="0.01"></td>
+            <td><input type="number" step="0.01"></td>
 
-        <td><input type="number" step="0.1"></td>
+            <td><input type="number" step="0.1"></td>
 
-        <td><input type="number" step="0.01"></td>
+            <td><input type="number" step="0.01"></td>
 
-        <td>
+            <td>
 
-            <button onclick="simpanData(this)"
-                    class="start">
-                Simpan
-            </button>
+                <button onclick="simpanData(this)"
+                        class="start">
+                    Simpan
+                </button>
 
-            <button onclick="hapusBaris(this)"
-                    class="reset">
-                Hapus
-            </button>
+                <button onclick="hapusBaris(this)"
+                        class="reset">
+                    Hapus
+                </button>
 
-        </td>
+            </td>
 
-    `;
+        `;
         }
         function simpanData(btn) {
 
-            const row =
-                btn.parentElement.parentElement;
+            const row = btn.closest("tr");
+            const inputs = row.querySelectorAll("input");
 
-            const inputs =
-                row.querySelectorAll("input");
+            const data = {
+                namaBeban: inputs[0].value,
+                tegangan1: parseFloat(inputs[1].value || 0),
+                arus1: parseFloat(inputs[2].value || 0),
+                tegangan2: parseFloat(inputs[3].value || 0),
+                arus2: parseFloat(inputs[4].value || 0)
+            };
 
-            if (btn.innerHTML === "Simpan") {
+            const id = row.getAttribute("data-id");
 
-                const data = {
+            // DATA BARU
+            if (!id) {
 
-                    namaBeban: inputs[0].value,
-                    tegangan1: inputs[1].value,
-                    arus1: inputs[2].value,
-                    tegangan2: inputs[3].value,
-                    arus2: inputs[4].value
+                const newRef =
+                    db.ref("Multimeter").push();
 
-                };
-
-                const id =
-                    Date.now().toString();
-
-                db.ref("Multimeter/" + id)
-                    .set(data);
+                newRef.set(data);
 
                 row.setAttribute(
                     "data-id",
-                    id
+                    newRef.key
                 );
 
                 inputs.forEach(input => {
-
-                    input.setAttribute(
-                        "readonly",
-                        true
-                    );
-
+                    input.setAttribute("readonly", true);
                 });
 
                 btn.innerHTML = "Edit";
                 btn.className = "pause";
-
             }
 
+            // UPDATE DATA LAMA
             else {
-
-                const id =
-                    row.getAttribute("data-id");
-
-                const data = {
-
-                    namaBeban: inputs[0].value,
-                    tegangan1: inputs[1].value,
-                    arus1: inputs[2].value,
-                    tegangan2: inputs[3].value,
-                    arus2: inputs[4].value
-
-                };
 
                 db.ref("Multimeter/" + id)
                     .update(data);
 
                 inputs.forEach(input => {
-
-                    input.removeAttribute(
-                        "readonly"
-                    );
-
+                    input.setAttribute("readonly", true);
                 });
 
-                btn.innerHTML = "Simpan";
-                btn.className = "start";
-
+                btn.innerHTML = "Edit";
+                btn.className = "pause";
             }
-
         }
 
         function hapusBaris(btn) {
@@ -1582,10 +1557,7 @@
         function editData(btn) {
 
             const row =
-                btn.parentElement.parentElement;
-
-            const id =
-                row.getAttribute("data-id");
+                btn.closest("tr");
 
             const inputs =
                 row.querySelectorAll("input");
@@ -1593,46 +1565,16 @@
             if (btn.innerHTML === "Edit") {
 
                 inputs.forEach(input => {
-
-                    input.removeAttribute(
-                        "readonly"
-                    );
-
+                    input.removeAttribute("readonly");
                 });
 
                 btn.innerHTML = "Update";
-
             }
-
             else {
 
-                const data = {
-
-                    namaBeban: inputs[0].value,
-                    tegangan1: inputs[1].value,
-                    arus1: inputs[2].value,
-                    tegangan2: inputs[3].value,
-                    arus2: inputs[4].value
-
-                };
-
-                db.ref(
-                    "Multimeter/" + id
-                ).update(data);
-
-                inputs.forEach(input => {
-
-                    input.setAttribute(
-                        "readonly",
-                        true
-                    );
-
-                });
-
-                btn.innerHTML = "Edit";
+                simpanData(btn);
 
             }
-
         }
         db.ref("Multimeter")
             .on("value", snapshot => {
@@ -1664,53 +1606,53 @@
 
                     row.innerHTML = `
 
-        <td>
-            <input type="text"
-                value="${data.namaBeban}"
-                readonly>
-        </td>
+            <td>
+                <input type="text"
+                    value="${data.namaBeban}"
+                    readonly>
+            </td>
 
-        <td>
-            <input type="number"
-                value="${data.tegangan1}"
-                readonly>
-        </td>
+            <td>
+                <input type="number"
+                    value="${data.tegangan1}"
+                    readonly>
+            </td>
 
-        <td>
-            <input type="number"
-                value="${data.arus1}"
-                readonly>
-        </td>
+            <td>
+                <input type="number"
+                    value="${data.arus1}"
+                    readonly>
+            </td>
 
-        <td>
-            <input type="number"
-                value="${data.tegangan2}"
-                readonly>
-        </td>
+            <td>
+                <input type="number"
+                    value="${data.tegangan2}"
+                    readonly>
+            </td>
 
-        <td>
-            <input type="number"
-                value="${data.arus2}"
-                readonly>
-        </td>
+            <td>
+                <input type="number"
+                    value="${data.arus2}"
+                    readonly>
+            </td>
 
-        <td>
+            <td>
 
-            <button
-                onclick="editData(this)"
-                class="pause">
-                Edit
-            </button>
+                <button
+                    onclick="editData(this)"
+                    class="pause">
+                    Edit
+                </button>
 
-            <button
-                onclick="hapusBaris(this)"
-                class="reset">
-                Hapus
-            </button>
+                <button
+                    onclick="hapusBaris(this)"
+                    class="reset">
+                    Hapus
+                </button>
 
-        </td>
+            </td>
 
-        `;
+            `;
 
                 });
 
