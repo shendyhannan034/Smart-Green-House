@@ -161,6 +161,23 @@
         tr:hover {
             background: #273449;
         }
+        #multimeterTable input {
+            width: 100%;
+            min-width: 120px;
+            padding: 10px;
+        }
+
+        #multimeterTable button {
+            padding: 8px 12px;
+            margin: 2px;
+        }
+        #multimeterTable input[readonly] {
+            background: #1e293b;
+            color: white;
+            border: none;
+            text-align: center;
+            font-weight: bold;
+        }
     </style>
 
 </head>
@@ -290,6 +307,7 @@
                         <th>Arus Menit 1 (A)</th>
                         <th>Tegangan Menit 2 (V)</th>
                         <th>Arus Menit 2 (A)</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
 
@@ -297,38 +315,28 @@
 
                     <tr>
 
-                        <td>
-                            <input type="text"
-                                   placeholder="Nama Beban"
-                                   style="width:100%;">
-                        </td>
+                        <td><input type="text" placeholder="Nama Beban"></td>
+
+                        <td><input type="number" step="0.1"></td>
+
+                        <td><input type="number" step="0.01"></td>
+
+                        <td><input type="number" step="0.1"></td>
+
+                        <td><input type="number" step="0.01"></td>
 
                         <td>
-                            <input type="number"
-                                   step="0.1"
-                                   placeholder="Volt"
-                                   style="width:100%;">
-                        </td>
 
-                        <td>
-                            <input type="number"
-                                   step="0.01"
-                                   placeholder="Ampere"
-                                   style="width:100%;">
-                        </td>
+                            <button onclick="simpanData(this)"
+                                    class="start">
+                                Simpan
+                            </button>
 
-                        <td>
-                            <input type="number"
-                                   step="0.1"
-                                   placeholder="Volt"
-                                   style="width:100%;">
-                        </td>
+                            <button onclick="hapusBaris(this)"
+                                    class="reset">
+                                Hapus
+                            </button>
 
-                        <td>
-                            <input type="number"
-                                   step="0.01"
-                                   placeholder="Ampere"
-                                   style="width:100%;">
                         </td>
 
                     </tr>
@@ -1440,42 +1448,273 @@
 
             row.innerHTML = `
 
-        <td>
-            <input type="text"
-                   placeholder="Nama Beban"
-                   style="width:100%;">
-        </td>
+        <td><input type="text" placeholder="Nama Beban"></td>
+
+        <td><input type="number" step="0.1"></td>
+
+        <td><input type="number" step="0.01"></td>
+
+        <td><input type="number" step="0.1"></td>
+
+        <td><input type="number" step="0.01"></td>
 
         <td>
-            <input type="number"
-                   step="0.1"
-                   placeholder="Volt"
-                   style="width:100%;">
-        </td>
 
-        <td>
-            <input type="number"
-                   step="0.01"
-                   placeholder="Ampere"
-                   style="width:100%;">
-        </td>
+            <button onclick="simpanData(this)"
+                    class="start">
+                Simpan
+            </button>
 
-        <td>
-            <input type="number"
-                   step="0.1"
-                   placeholder="Volt"
-                   style="width:100%;">
-        </td>
+            <button onclick="hapusBaris(this)"
+                    class="reset">
+                Hapus
+            </button>
 
-        <td>
-            <input type="number"
-                   step="0.01"
-                   placeholder="Ampere"
-                   style="width:100%;">
         </td>
 
     `;
         }
+        function simpanData(btn) {
+
+            const row =
+                btn.parentElement.parentElement;
+
+            const inputs =
+                row.querySelectorAll("input");
+
+            if (btn.innerHTML === "Simpan") {
+
+                const data = {
+
+                    namaBeban: inputs[0].value,
+                    tegangan1: inputs[1].value,
+                    arus1: inputs[2].value,
+                    tegangan2: inputs[3].value,
+                    arus2: inputs[4].value
+
+                };
+
+                const id =
+                    Date.now().toString();
+
+                db.ref("Multimeter/" + id)
+                    .set(data);
+
+                row.setAttribute(
+                    "data-id",
+                    id
+                );
+
+                inputs.forEach(input => {
+
+                    input.setAttribute(
+                        "readonly",
+                        true
+                    );
+
+                });
+
+                btn.innerHTML = "Edit";
+                btn.className = "pause";
+
+            }
+
+            else {
+
+                const id =
+                    row.getAttribute("data-id");
+
+                const data = {
+
+                    namaBeban: inputs[0].value,
+                    tegangan1: inputs[1].value,
+                    arus1: inputs[2].value,
+                    tegangan2: inputs[3].value,
+                    arus2: inputs[4].value
+
+                };
+
+                db.ref("Multimeter/" + id)
+                    .update(data);
+
+                inputs.forEach(input => {
+
+                    input.removeAttribute(
+                        "readonly"
+                    );
+
+                });
+
+                btn.innerHTML = "Simpan";
+                btn.className = "start";
+
+            }
+
+        }
+
+        function hapusBaris(btn) {
+
+            const row =
+                btn.parentElement.parentElement;
+
+            const id =
+                row.getAttribute("data-id");
+
+            if (
+                confirm(
+                    "Yakin ingin menghapus data?"
+                )
+            ) {
+
+                if (id) {
+
+                    db.ref(
+                        "Multimeter/" + id
+                    ).remove();
+
+                }
+
+                row.remove();
+
+            }
+
+        }
+        function editData(btn) {
+
+            const row =
+                btn.parentElement.parentElement;
+
+            const id =
+                row.getAttribute("data-id");
+
+            const inputs =
+                row.querySelectorAll("input");
+
+            if (btn.innerHTML === "Edit") {
+
+                inputs.forEach(input => {
+
+                    input.removeAttribute(
+                        "readonly"
+                    );
+
+                });
+
+                btn.innerHTML = "Update";
+
+            }
+
+            else {
+
+                const data = {
+
+                    namaBeban: inputs[0].value,
+                    tegangan1: inputs[1].value,
+                    arus1: inputs[2].value,
+                    tegangan2: inputs[3].value,
+                    arus2: inputs[4].value
+
+                };
+
+                db.ref(
+                    "Multimeter/" + id
+                ).update(data);
+
+                inputs.forEach(input => {
+
+                    input.setAttribute(
+                        "readonly",
+                        true
+                    );
+
+                });
+
+                btn.innerHTML = "Edit";
+
+            }
+
+        }
+        db.ref("Multimeter")
+            .on("value", snapshot => {
+
+                const table =
+                    document.getElementById(
+                        "multimeterTable"
+                    );
+
+                table.innerHTML = "";
+
+                if (!snapshot.exists()) return;
+
+                snapshot.forEach(child => {
+
+                    const data =
+                        child.val();
+
+                    const id =
+                        child.key;
+
+                    const row =
+                        table.insertRow();
+
+                    row.setAttribute(
+                        "data-id",
+                        id
+                    );
+
+                    row.innerHTML = `
+
+        <td>
+            <input type="text"
+                value="${data.namaBeban}"
+                readonly>
+        </td>
+
+        <td>
+            <input type="number"
+                value="${data.tegangan1}"
+                readonly>
+        </td>
+
+        <td>
+            <input type="number"
+                value="${data.arus1}"
+                readonly>
+        </td>
+
+        <td>
+            <input type="number"
+                value="${data.tegangan2}"
+                readonly>
+        </td>
+
+        <td>
+            <input type="number"
+                value="${data.arus2}"
+                readonly>
+        </td>
+
+        <td>
+
+            <button
+                onclick="editData(this)"
+                class="pause">
+                Edit
+            </button>
+
+            <button
+                onclick="hapusBaris(this)"
+                class="reset">
+                Hapus
+            </button>
+
+        </td>
+
+        `;
+
+                });
+
+            });
 
     </script>
 
